@@ -56,7 +56,7 @@ jobs:
           browser: chrome
           spec: cypress/e2e/**/*.cy.ts
           config-file: cypress.config.ts
-          install: false            # мы уже сделали npm ci выше
+          install: false
           config: video=true
         env:
           CYPRESS_ORANGEHRM_USERNAME: ${{ secrets.ORANGEHRM_USERNAME }}
@@ -69,3 +69,12 @@ jobs:
           name: cypress-screenshots
           path: ${{ env.PROJECT_DIR }}/cypress/screenshots
           if-no-files-found: ignore
+
+      - name: Upload videos
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: cypress-videos
+          path: ${{ env.PROJECT_DIR }}/cypress/videos
+          if-no-files-found: ignore
+          retention-days: 7
