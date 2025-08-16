@@ -1,4 +1,4 @@
-name: E2E (Cypress)
+name: E2E (Docker, Chrome)
 
 on:
   push:
@@ -8,73 +8,53 @@ on:
   workflow_dispatch:
 
 jobs:
-  cypress:
+  e2e:
     runs-on: ubuntu-latest
-    timeout-minutes: 30
-    env:
-      PROJECT_DIR: orangehrm-cypress
+    timeout-minutes: 40
 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Debug layout
-        run: |
-          echo "PWD: $PWD"
-          ls -la
-          echo "--- $PROJECT_DIR ---"
-          ls -la "$PROJECT_DIR"
+      - name: Docker Buildx
+        uses: docker/setup-buildx-action@v3
 
-      - name: Ensure package.json exists
-        run: |
-          test -f "$PROJECT_DIR/package.json" || { echo "❌ package.json not found in $PROJECT_DIR"; exit 1; }
-
-      - name: Setup Node (with npm cache)
-        uses: actions/setup-node@v4
+      - name: Build test image (chrome only)
+        uses: docker/build-push-action@v6
         with:
-          node-version: 20
-          cache: npm
-          cache-dependency-path: ${{ env.PROJECT_DIR }}/package-lock.json
-
-      - name: Install deps
-        working-directory: ${{ env.PROJECT_DIR }}
-        run: |
-          if [ -f package-lock.json ]; then
-            npm ci
-          else
-            npm install
-          fi
-
-      - name: Type check
-        working-directory: ${{ env.PROJECT_DIR }}
-        run: npx tsc -p tsconfig.json --noEmit
+          context: .
+          file: ./Dockerfile
+          build-args: PROJECT_DIR=orangehrm-cypress
+          tags: qa-cypress:chrome
+          load: true                  # загрузить образ в докер раннера
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
 
       - name: Run Cypress (Chrome)
-        uses: cypress-io/github-action@v6
-        with:
-          working-directory: ${{ env.PROJECT_DIR }}
-          browser: chrome
-          spec: cypress/e2e/**/*.cy.ts
-          config-file: cypress.config.ts
-          install: false
-          config: video=true
-        env:
-          CYPRESS_ORANGEHRM_USERNAME: ${{ secrets.ORANGEHRM_USERNAME }}
-          CYPRESS_ORANGEHRM_PASSWORD: ${{ secrets.ORANGEHRM_PASSWORD }}
+        run: |
+          mkdir -p artifacts/videos artifacts/screenshots
+          docker run --rm --shm-size=2g --ipc=host \
+            -e ORANGEHRM_USERNAME="${{ secrets.ORANGEHRM_USERNAME }}" \
+            -e ORANGEHRM_PASSWORD="${{ secrets.ORANGEHRM_PASSWORD }}" \
+            -e BROWSER="chrome" \
+            -v "${{ github.workspace }}/artifacts/videos:/e2e/cypress/videos" \
+            -v "${{ github.workspace }}/artifacts/screenshots:/e2e/cypress/screenshots" \
+            qa-cypress:chrome
 
       - name: Upload screenshots
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: cypress-screenshots
-          path: ${{ env.PROJECT_DIR }}/cypress/screenshots
+          path: artifacts/screenshots
           if-no-files-found: ignore
+          retention-days: 7
 
       - name: Upload videos
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: cypress-videos
-          path: ${{ env.PROJECT_DIR }}/cypress/videos
+          path: artifacts/videos
           if-no-files-found: ignore
           retention-days: 7
