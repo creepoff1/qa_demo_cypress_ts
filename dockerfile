@@ -22,7 +22,7 @@ COPY ${PROJECT_DIR}/ ./
 RUN npx cypress install
 
 # По умолчанию запускаем chrome и все спеки
-ENV BROWSER=chrome \
+ENV BROWSER=chromium \
     SPECS="cypress/e2e/**/*.cy.ts"
 
 COPY docker/entrypoint.sh /entrypoint.sh
