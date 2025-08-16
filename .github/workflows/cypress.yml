@@ -11,60 +11,61 @@ jobs:
   cypress:
     runs-on: ubuntu-latest
     timeout-minutes: 30
-
-    strategy:
-      fail-fast: false
-      matrix:
-        browser: [ chrome, firefox ]
-
-    concurrency:
-      group: cypress-${{ github.ref }}-${{ matrix.browser }}
-      cancel-in-progress: true
+    env:
+      PROJECT_DIR: orangehrm-cypress
 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Setup Node
+      - name: Debug layout
+        run: |
+          echo "PWD: $PWD"
+          ls -la
+          echo "--- $PROJECT_DIR ---"
+          ls -la "$PROJECT_DIR"
+
+      - name: Ensure package.json exists
+        run: |
+          test -f "$PROJECT_DIR/package.json" || { echo "❌ package.json not found in $PROJECT_DIR"; exit 1; }
+
+      - name: Setup Node (with npm cache)
         uses: actions/setup-node@v4
         with:
           node-version: 20
           cache: npm
+          cache-dependency-path: ${{ env.PROJECT_DIR }}/package-lock.json
 
       - name: Install deps
-        run: npm ci
+        working-directory: ${{ env.PROJECT_DIR }}
+        run: |
+          if [ -f package-lock.json ]; then
+            npm ci
+          else
+            npm install
+          fi
 
-      - name: Type check (tsc)
+      - name: Type check
+        working-directory: ${{ env.PROJECT_DIR }}
         run: npx tsc -p tsconfig.json --noEmit
 
-      # Основной шаг запуска Cypress
-      - name: Run Cypress (${{ matrix.browser }})
+      - name: Run Cypress (Chrome)
         uses: cypress-io/github-action@v6
         with:
-          browser: ${{ matrix.browser }}
+          working-directory: ${{ env.PROJECT_DIR }}
+          browser: chrome
           spec: cypress/e2e/**/*.cy.ts
           config-file: cypress.config.ts
-          install: false
-          wait-on: ""
+          install: false            # мы уже сделали npm ci выше
           config: video=true
         env:
           CYPRESS_ORANGEHRM_USERNAME: ${{ secrets.ORANGEHRM_USERNAME }}
           CYPRESS_ORANGEHRM_PASSWORD: ${{ secrets.ORANGEHRM_PASSWORD }}
 
-      # Артефакты: скриншоты
       - name: Upload screenshots
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: cypress-screenshots-${{ matrix.browser }}
-          path: cypress/screenshots
-          if-no-files-found: ignore
-
-      # Артефакты: видео
-      - name: Upload videos
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: cypress-videos-${{ matrix.browser }}
-          path: cypress/videos
-          if-no-files-found: ignore
+          name: cypress-screenshots
+          path: ${{ env.PROJECT_DIR }}/cypress/screenshots
+          if-no-files-found: igno
