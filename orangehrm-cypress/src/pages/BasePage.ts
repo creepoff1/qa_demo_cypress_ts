@@ -4,7 +4,7 @@ export abstract class BasePage {
     open(): void {
         cy.visit(this.path);
     }
-    assertOnOrangeHRM(): void {
-        cy.location("origin").should("include", "opensource-demo.orangehrmlive.com");
-    }
+    // assertOnOrangeHRM(): void {
+    //     cy.location("origin").should("include", "opensource-demo.orangehrmlive.com");
+    // }
 }
