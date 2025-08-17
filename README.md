@@ -1,4 +1,4 @@
-## OrangeHRM E2E — Cypress + TypeScript + Docker + GitHub Actions
+## 🧪 OrangeHRM E2E — Cypress + TypeScript + Docker + GitHub Actions
 
 End-to-end tests for the OrangeHRM demo app.
 Stack: Cypress 14 + TypeScript + Page Object Model (POM). Runs locally, in Docker (Chromium), and on GitHub Actions with screenshots & videos as artifacts.
