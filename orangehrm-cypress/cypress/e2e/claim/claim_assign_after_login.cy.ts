@@ -1,26 +1,22 @@
-import { LoginPage } from "../../../src/pages/LoginPage";
 import { DashboardPage } from "../../../src/pages/DashboardPage";
 import { ClaimAssignPage } from "../../../src/pages/ClaimAssignPage";
 
-describe("Assign Claim — open after login (POM)", () => {
-    const loginPage = new LoginPage();
+describe("Assign Claim — open after login", () => {
     const dashboard = new DashboardPage();
     const claimAssign = new ClaimAssignPage();
 
-    it("logs in and opens Assign Claim page", () => {
-        cy.fixture("credentials.json").then(({ orangehrm }) => {
+    beforeEach(() => {
+        cy.loginAsAdmin();
+        dashboard.open().assertLoggedIn();
+    });
 
-            loginPage.login(orangehrm.username, orangehrm.password);
+    it("opens Assign Claim page directly", () => {
+        claimAssign.open().assertLoaded();
+    });
 
-            dashboard.assertLoggedIn();
-
-            claimAssign.open();
-
-            claimAssign.assertLoaded();
-
-            cy.request("/web/index.php/claim/viewAssignClaim")
-                .its("status")
-                .should("eq", 200);
-        });
+    it("Assign Claim API endpoint returns 200", () => {
+        cy.request("/web/index.php/claim/viewAssignClaim")
+            .its("status")
+            .should("eq", 200);
     });
 });

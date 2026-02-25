@@ -1,14 +1,15 @@
 import { BasePage } from "./BasePage";
 
 export class ClaimAssignPage extends BasePage {
-    protected path = "/web/index.php/claim/viewAssignClaim";
+    protected readonly path = "/web/index.php/claim/viewAssignClaim";
 
-    open(): void {
-        cy.visit(this.path);
-    }
+    readonly selectors = {
+        assignButton: "button.oxd-button",
+    } as const;
 
-    assertLoaded(): void {
+    assertLoaded(): this {
         cy.title().should("contain", "OrangeHRM");
-        cy.contains("button.oxd-button", "Assign").should("be.visible");
+        cy.contains(this.selectors.assignButton, "Assign").should("be.visible");
+        return this;
     }
 }

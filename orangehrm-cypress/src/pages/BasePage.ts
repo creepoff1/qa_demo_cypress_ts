@@ -1,10 +1,8 @@
 export abstract class BasePage {
-    protected abstract path: string;
+    protected abstract readonly path: string;
 
-    open(): void {
+    open(): this {
         cy.visit(this.path);
+        return this;
     }
-    // assertOnOrangeHRM(): void {
-    //     cy.location("origin").should("include", "opensource-demo.orangehrmlive.com");
-    // }
 }

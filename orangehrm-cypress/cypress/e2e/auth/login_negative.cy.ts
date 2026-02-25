@@ -1,16 +1,26 @@
-
 import { LoginPage } from "../../../src/pages/LoginPage";
 
-describe("Login - invalid credentials", () => {
-    const login = new LoginPage();
+describe("Login — invalid credentials", () => {
+    const loginPage = new LoginPage();
 
-    it("shows error on invalid password", () => {
-        login.open();
-        login.fillUsername("Admin");
-        login.fillPassword("wrong-pass");
-        login.submit();
+    beforeEach(() => {
+        loginPage.open();
+    });
 
-        cy.contains(/Invalid credentials/).should("be.visible");
-        cy.location("pathname").should("include", "/auth/login");
+    it("shows error on wrong password", () => {
+        loginPage
+            .fillUsername("Admin")
+            .fillPassword("wrong-pass")
+            .submit()
+            .assertErrorVisible(/Invalid credentials/)
+            .assertOnLoginPage();
+    });
+
+    it("shows validation error on empty fields", () => {
+        loginPage
+            .submit()
+            .assertOnLoginPage();
+
+        cy.contains(/Required/).should("be.visible");
     });
 });

@@ -1,29 +1,40 @@
 import { BasePage } from "./BasePage";
 
 export class LoginPage extends BasePage {
-    protected path = "/web/index.php/auth/login";
+    protected readonly path = "/web/index.php/auth/login";
 
-    open(): void {
-        cy.visit(this.path);
+    readonly selectors = {
+        usernameInput: 'input[name="username"]',
+        passwordInput: 'input[name="password"]',
+        loginButton:   "button.oxd-button",
+    } as const;
+
+    fillUsername(value: string): this {
+        cy.get(this.selectors.usernameInput).clear().type(value);
+        return this;
     }
 
-    fillUsername(value: string): void {
-        cy.get('input[name="username"]').clear().type(value);
+    fillPassword(value: string): this {
+        cy.get(this.selectors.passwordInput).clear().type(value, { log: false });
+        return this;
     }
 
-    fillPassword(value: string): void {
-        cy.get('input[name="password"]').clear().type(value, { log: false });
+    submit(): this {
+        cy.contains(this.selectors.loginButton, "Login").click();
+        return this;
     }
 
-    submit(): void {
-        cy.contains("button.oxd-button", "Login").click();
+    login(username: string, password: string): this {
+        return this.open().fillUsername(username).fillPassword(password).submit();
     }
 
+    assertErrorVisible(text: string | RegExp): this {
+        cy.contains(text).should("be.visible");
+        return this;
+    }
 
-    login(username: string, password: string): void {
-        this.open();
-        this.fillUsername(username);
-        this.fillPassword(password);
-        this.submit();
+    assertOnLoginPage(): this {
+        cy.location("pathname").should("include", "/auth/login");
+        return this;
     }
 }

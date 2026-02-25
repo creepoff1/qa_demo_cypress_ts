@@ -5,7 +5,8 @@
   "scripts": {
     "cy:open": "cypress open",
     "cy:run": "cypress run",
-    "test": "cypress run"
+    "test": "cypress run",
+    "lint": "eslint 'cypress/**/*.ts' 'src/**/*.ts'"
   },
   "keywords": [],
   "author": "",
@@ -13,10 +14,12 @@
   "description": "",
   "devDependencies": {
     "@types/node": "^24.3.0",
+    "@typescript-eslint/eslint-plugin": "^8.0.0",
+    "@typescript-eslint/parser": "^8.0.0",
     "cypress": "^14.5.4",
+    "eslint": "^9.0.0",
+    "eslint-plugin-cypress": "^3.0.0",
     "ts-node": "^10.9.2",
     "typescript": "^5.9.2"
   }
 }
-
-

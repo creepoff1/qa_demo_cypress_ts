@@ -1,23 +1,19 @@
-import { LoginPage } from "../../../src/pages/LoginPage";
 import { DashboardPage } from "../../../src/pages/DashboardPage";
 import { ClaimAssignPage } from "../../../src/pages/ClaimAssignPage";
 import { Sidebar } from "../../../src/pages/Sidebar";
 
-describe("Assign Claim — navigation via menu", () => {
-    const login = new LoginPage();
+describe("Assign Claim — navigation via sidebar", () => {
     const dashboard = new DashboardPage();
-    const assign = new ClaimAssignPage();
+    const claimAssign = new ClaimAssignPage();
     const sidebar = new Sidebar();
 
-    it("opens Assign Claim from sidebar", () => {
-        cy.fixture("credentials.json").then(({ orangehrm }) => {
-            login.login(orangehrm.username, orangehrm.password);
+    beforeEach(() => {
+        cy.loginAsAdmin();
+        dashboard.open().assertLoggedIn();
+    });
 
-            dashboard.assertLoggedIn();
-
-            sidebar.openClaimAssign();
-
-            assign.assertLoaded();
-        });
+    it("navigates to Assign Claim via sidebar menu", () => {
+        sidebar.openClaimAssign();
+        claimAssign.assertLoaded();
     });
 });
